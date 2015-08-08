@@ -15,6 +15,7 @@ from tweepy import OAuthHandler
 from tweepy import StreamListener
 from tweepy import Stream
 import json
+import sys
 
 api = twitter.Api(consumer_key=consumer_key,
 	consumer_secret=consumer_secret,
@@ -24,16 +25,32 @@ api = twitter.Api(consumer_key=consumer_key,
 twitterID = '2768116808'
 bridgeName = 'Spokane'
 
+# Define a single timeframe to work with
+startTime = "4:25PM"
+endTime = "10:30PM"
+
 class StdOutListener(StreamListener):
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
     """
     def on_data(self, data):
-   	    process_tweet(data)
-        #return True
+   	    # if within the defined time frame, process tweet
+   	    # otherwise do nothing
+   	    if check_time():
+   	    	process_tweet(data)
+   	    return True
 
     def on_error(self, status):
         print(status)
+
+def check_time():
+	now = datetime.now()
+	startTimeObj = datetime.strptime(startTime, '%I:%M%p')
+	endTimeObj = datetime.strptime(startTime, '%I:%M%p')
+
+	if startTimeObj.hour <= now.hour <= endTimeObj.hour and \
+       startTimeObj.minute <= now.minute <= endTimeObj.minute:
+           return True
 
 def process_tweet(data):
     decoded = json.loads(data)
@@ -45,15 +62,17 @@ def process_tweet(data):
     	print "BRIDGE CLOSED!!! Eat another piece of toast, pet the cats"
     	sendAlert(data=decoded, email=to_emailAddress)
 
+    	# temporarily limit the number of calls to one
+    	sys.exit('had a bridge event, shutting down')
     return True
 
 def sendAlert(data, email):
 	# Import the email modules we'll need
-	fromaddr = email_address
-	toaddrs = emailAddress
-	msg = 'The bridge just opened...'
-	username = email_address
-	password = email_password
+	fromaddr = from_email_address
+	toaddrs = email
+	msg = 'The bridge just closed...'
+	username = from_email_address
+	password = from_email_password
 
 	server = smtplib.SMTP('smtp.gmail.com:587')
 	server.ehlo()
@@ -61,8 +80,6 @@ def sendAlert(data, email):
 	server.login(username,password)
 	server.sendmail(fromaddr, toaddrs, msg)
 	server.quit()
-
-
 
 if __name__ == '__main__':
     l = StdOutListener()
