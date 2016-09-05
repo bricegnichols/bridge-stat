@@ -1,6 +1,8 @@
 # Original author: yanofsky
 # https://gist.github.com/yanofsky/5436496
 
+# Export limited tweet history for SDOT bridges account
+
 #!/usr/bin/env python
 # encoding: utf-8
 
@@ -49,7 +51,7 @@ def get_all_tweets(screen_name):
 	
 	#write the csv
 	fname = str(datetime.now().month)+'-'+str(datetime.now().day)+'-'+str(datetime.now().year)	
-	with open(fname + '.csv', 'wb') as f:
+	with open('../data/bridge/' + fname + '.csv', 'wb') as f:
 		writer = csv.writer(f)
 		writer.writerow(["id","created_at","text"])
 		writer.writerows(outtweets)

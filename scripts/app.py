@@ -46,23 +46,30 @@ class StdOutListener(StreamListener):
     def on_data(self, data):
    	    # if within the defined time frame, process tweet
    	    # otherwise do nothing
-   	    if check_time():
+   	    if check_time(startTime, endTime):
    	    	process_tweet(data)
    	    return True
 
     def on_error(self, status):
         print(status)
 
-def check_time():
-	now = datetime.now()
-	startTimeObj = datetime.strptime(startTime, '%I:%M%p')
-	endTimeObj = datetime.strptime(startTime, '%I:%M%p')
+def check_time(startTime, endTime):
+  """
+  Check if bridge opening time is within s=define parameters
+  """
 
-	if startTimeObj.hour <= now.hour <= endTimeObj.hour and \
-       startTimeObj.minute <= now.minute <= endTimeObj.minute:
-           return True
+  now = datetime.now()
+  startTimeObj = datetime.strptime(startTime, '%I:%M%p')
+  endTimeObj = datetime.strptime(startTime, '%I:%M%p')
+
+  if startTimeObj.hour <= now.hour <= endTimeObj.hour and \
+         startTimeObj.minute <= now.minute <= endTimeObj.minute:
+             return True
 
 def process_tweet(data):
+    """
+    Send alert if bridge is opened
+    """
     decoded = json.loads(data)
 
     twt_text = decoded['text']
@@ -77,7 +84,7 @@ def process_tweet(data):
     return True
 
 def sendAlert(data, email):
-	# Import the email modules we'll need
+	# Import the email modules we'll need from config.py
 	fromaddr = from_email_address
 	toaddrs = email
 	msg = 'The bridge just closed...'
