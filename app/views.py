@@ -16,27 +16,16 @@ bridges = {'Lower Spokane St': [47.570950, -122.348324],
           'University': [47.652995, -122.320194],
           '1st Ave S': [47.542049, -122.334541]}
 
-# systematic pop up for all bridges, based on status
-# current_closures = pd.read_csv(r'notebooks/scratch_closures.csv')
-# map_osm = folium.Map(location=[47.5836, -122.3750], zoom_start=11, tiles='Stamen Toner')
-# map_osm.save('osm.html')
-current_closures = bridge_stat.current_closures()
+# use fake one for testing below
+current_closures = pd.read_csv(r'notebooks/scratch_closures.csv')
+
+# Uncomment below to get live updates!
+# current_closures = bridge_stat.current_closures()
 
 @app.route('/')
 @app.route('/index')
 def map():
-# 	tweets = bridge_stat.get_tweets(screen_name='SDOTBridges', export_all=False)
-# 	df = bridge_stat.bridge_status(tweets)
-# 	df = df.sort('local_date')
-# 	close_events = df[df['event'] == 'closed'].drop_duplicates(subset='bridge', keep='last')
-# 	open_events = df[df['event'] == 'open'].drop_duplicates(subset='bridge', keep='last')
-# 	df = pd.merge(close_events,open_events,on='bridge',suffixes=['_close','_open
-# 	current_closures = df[df['local_date_open'] < df['local_date_close']]
-	
-	# current_closures = bridge_stat.bridge_status(latest_tweets) 
-	# latest_tweets.to_csv('test.csv')
-	print 'here'
-
+    
 	map_osm = folium.Map(location=[47.5836, -122.3750], zoom_start=11, tiles='Stamen Toner')
 
 	for bridge, coord in bridges.iteritems():
@@ -52,4 +41,17 @@ def map():
 	map_osm.save('osm.html')
 	
 	return send_from_directory(os.getcwd(),'osm.html')
-	# return map_osm
+
+@app.route('/dashboard')
+def dashboard():
+
+	status_color = {}
+
+	for bridge, coord in bridges.iteritems():
+		status_color[bridge]='green'
+		if bridge in current_closures['bridge'].values:
+			status_color[bridge]='red'
+
+
+	return render_template('dashboard.html', status_color=status_color,
+		bridges=bridges)
