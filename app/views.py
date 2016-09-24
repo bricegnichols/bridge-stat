@@ -1,5 +1,5 @@
 from flask import render_template
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, jsonify
 from app import app
 import folium
 import vincent
@@ -42,16 +42,44 @@ def map():
 	
 	return send_from_directory(os.getcwd(),'osm.html')
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET','POST'])
 def dashboard():
 
 	status_color = {}
-
+	
 	for bridge, coord in bridges.iteritems():
 		status_color[bridge]='green'
 		if bridge in current_closures['bridge'].values:
 			status_color[bridge]='red'
 
+	if request.method == 'POST':
+		# print json.dumps(request.data)
+		# print request.data[0]
+		return 'test'
+	else:
+		print 'get'
+		return render_template('dashboard.html', status_color=status_color,
+			bridges=bridges)
 
-	return render_template('dashboard.html', status_color=status_color,
-		bridges=bridges)
+@app.route('/stats')
+def stats():
+
+	# Get average closures
+	# Use a static check for now, but want to get the latest at some point
+	events = pd.read_csv(r'data/bridge/bridge_status.csv')
+	average_closures = bridge_stat.average_closures(events)
+
+	# Closures today; how many more might we expect?
+	closures_per_day = bridge_stat.closures_per_day(average_closures)
+	
+	resp = closures_per_day.to_json()
+
+	return resp
+
+@app.route('/results/<bridge_name>', methods=['POST','GET'])
+def get_results(bridge_name):
+	if request.method == 'POST':
+		data = bridge_name
+	else:
+		data = bridge_name
+	return data

@@ -11,6 +11,7 @@
 import tweepy 
 import csv
 from datetime import datetime, timedelta
+import math
 from config import *
 import pandas as pd
 
@@ -107,6 +108,9 @@ def bridge_status(df):
 	return df
 
 def current_closures():
+	'''
+	Return dataframe of bridges currently opened to traffic at time of query.
+	'''
 	tweets = get_tweets('SDOTBridges',export_all=False)
 	df = bridge_status(tweets).sort_values('local_date')
 
@@ -122,3 +126,69 @@ def current_closures():
 	current_closures = df[df['local_date_open'] < df['local_date_close']]
 
 	return current_closures
+
+def average_closures(events):
+	'''
+	Return dataframe of average closures per day for each bridge
+	Input is collected bridge event data from twitter history (../data/bridge/bridge_status.csv)
+	'''
+	closures = events[events['event'] == 'closed']
+	closures_group = closures.groupby(['date','bridge']).count()
+
+	closures_group['date'] = closures_group.index.get_level_values(0)
+	closures_group['bridge'] = closures_group.index.get_level_values(1)
+
+	avg_closure_per_day = {}
+	for bridge in closures_group.groupby('bridge').count().index:
+		avg_closure_per_day[bridge] = closures_group[closures_group['bridge'] == bridge].mean()['event']
+
+	df = pd.DataFrame(avg_closure_per_day, index=avg_closure_per_day.keys()).T
+	df = pd.DataFrame(df['Ballard'])
+	df.columns = ['avg_closures']
+	df['bridge'] = df.index
+	# df.to_csv('../data/bridge/avg_closures.csv')
+
+	return df
+
+def closures_per_day(average_closures):
+	'''
+	Return dataframe of closures on today's date, and anticipated openings left,
+	based on the average from average_closures
+	'''
+
+	tweets = get_tweets('SDOTBridges',export_all=False)
+	recent_df = bridge_status(tweets).sort_values('local_date')
+
+	# Write these out for testing
+	# recent_df.to_csv('../data/bridge/recent_tweets.csv')
+
+	recent_df['local_date'] = pd.to_datetime(recent_df['local_date'])
+
+	today = datetime.today()
+
+	tweets_today = recent_df[recent_df['local_date'].apply(lambda row:
+                       (row.day == today.day) &
+                       (row.month == today.month) &
+                       (row.year == today.year))
+    ]
+
+    # Get a count of tweets by bridge 
+	tweets_today
+	closures_today = tweets_today[tweets_today['event'] == 'closed']
+	closures_by_bridge = closures_today.groupby('bridge').count()
+	closures_by_bridge['bridge'] = closures_by_bridge.index
+	closures_by_bridge = closures_by_bridge[['bridge','event']]
+	closures_by_bridge.columns = ['bridge','closures_so_far']
+
+	# Compare to average to get anticipated remained on average
+	remaining_closures_df = pd.merge(closures_by_bridge, average_closures, left_on='bridge', right_on='bridge')
+
+	# Round up for average closures
+	remaining_closures_df['avg_closures'] = remaining_closures_df['avg_closures'].apply(lambda row: math.ceil(row))
+	remaining_closures_df['closures_remaining'] = remaining_closures_df['avg_closures'] - remaining_closures_df['closures_so_far']
+	remaining_closures_df['%_closures_remaining'] = remaining_closures_df['closures_remaining']/remaining_closures_df['avg_closures']
+
+	# Leave the negatives in: indicates odds less likely 
+	# remaining_closures_df.to_csv('../data/bridge/closure_estimate.csv')
+
+	return remaining_closures_df
