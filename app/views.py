@@ -78,8 +78,16 @@ def stats():
 
 @app.route('/results/<bridge_name>', methods=['POST','GET'])
 def get_results(bridge_name):
-	if request.method == 'POST':
-		data = bridge_name
-	else:
-		data = bridge_name
-	return data
+
+	average_closures = pd.read_csv('data/bridge/avg_closures.csv')
+
+	df = bridge_stat.closures_per_day(average_closures)
+	df.to_csv('data/bridge/closures_per_day.csv',index=False)
+
+	# df = df[df['bridge'] == bridge_name]
+	df.index = df['bridge']
+	resp = df.to_dict()
+	# return resp
+
+	# resp = df.to_json()
+	return render_template('bridge.html', resp=resp)
