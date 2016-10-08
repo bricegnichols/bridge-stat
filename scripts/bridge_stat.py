@@ -146,7 +146,7 @@ def average_closures(events):
 	df = pd.DataFrame(df['Ballard'])
 	df.columns = ['avg_closures']
 	df['bridge'] = df.index
-	# df.to_csv('../data/bridge/avg_closures.csv')
+	df.to_csv('../data/bridge/avg_closures.csv')
 
 	return df
 

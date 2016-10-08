@@ -55,7 +55,7 @@ class StdOutListener(StreamListener):
 
 def check_time(startTime, endTime):
   """
-  Check if bridge opening time is within s=define parameters
+  Check if bridge opening time is within defined parameters
   """
 
   now = datetime.now()
