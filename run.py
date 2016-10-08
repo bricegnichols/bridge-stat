@@ -1,13 +1,25 @@
 #! flask/bin/python
 
+import os
+import json
 from app import app
 from threading import Timer
-from flask import Flask
+from flask import Flask, request, send_from_directory, jsonify, render_template
 import pandas as pd
+import folium
+import vincent
 from scripts import bridge_stat
 
 # Grab info about current closures at start and update at intervals
 update_interval = 150 # 2.5 minutes
+
+bridges = {'Lower Spokane St': [47.570950, -122.348324],
+          'South Park': [47.529252, -122.314316],
+          'Fremont': [47.647857, -122.349867],
+          'Ballard': [47.659280, -122.376163],
+          'Montlake': [47.647296, -122.304577],
+          'University': [47.652995, -122.320194],
+          '1st Ave S': [47.542049, -122.334541]}
 
 def update_bridge_status(interval):
 	# update every minute
