@@ -33,6 +33,7 @@ def update_bridge_status(interval):
 	current_closures_df.to_csv('data/bridge/current_closures.csv')
 
 update_bridge_status(update_interval)
+# And refresh the data being sent to 
 
 @app.route('/')
 def map():
@@ -53,4 +54,5 @@ def map():
 	return send_from_directory(os.getcwd(),'osm.html')
 
 if __name__ == '__main__':
-	app.run(debug=True)
+	# app.run(debug=True)
+	run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
