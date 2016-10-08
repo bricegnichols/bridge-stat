@@ -7,12 +7,12 @@
 
 #!/usr/bin/env python
 # encoding: utf-8
-
+import os
 import tweepy 
 import csv
 from datetime import datetime, timedelta
 import math
-from config import *
+# from config import *
 import pandas as pd
 
 def get_tweets(screen_name, export_all=True):
@@ -21,8 +21,8 @@ def get_tweets(screen_name, export_all=True):
 	"""
 
 	# authorize twitter, initialize tweepy
-	auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-	auth.set_access_token(access_token_key, access_token_secret)
+	auth = tweepy.OAuthHandler(os.environ['consumer_key'], os.environ['consumer_secret'])
+	auth.set_access_token(os.environ['access_token_key'], os.environ['access_token_secret'])
 	api = tweepy.API(auth)
 
 	# initialize a list to hold all the tweepy Tweets
