@@ -2,6 +2,7 @@
 
 import os
 import json
+from datetime import datetime
 from app import app
 from threading import Timer
 from flask import Flask, request, send_from_directory, jsonify, render_template
@@ -21,6 +22,8 @@ bridges = {'Lower Spokane St': [47.570950, -122.348324],
           'University': [47.652995, -122.320194],
           '1st Ave S': [47.542049, -122.334541]}
 
+
+
 def update_bridge_status(interval):
 	# update every minute
 
@@ -33,19 +36,38 @@ def update_bridge_status(interval):
 	current_closures_df.to_csv('data/bridge/current_closures.csv')
 
 update_bridge_status(update_interval)
-# And refresh the data being sent to 
 
 @app.route('/')
 def map():
-	current_closures = pd.read_csv('data/bridge/current_closures.csv')
-	map_osm = folium.Map(location=[47.5836, -122.3750], zoom_start=11, tiles='Stamen Toner')
+	df = pd.read_csv('data/bridge/current_closures.csv')
+	avg_times_df = pd.read_csv('data/bridge/mean_95th_percentile.csv')
+	traffic_cams = pd.read_csv('data/bridge/traffic_cams.csv')
+
+	# Flag closure periods longer than 95th percentile
+	df = pd.merge(df,avg_times_df,on='bridge')
+	df['closure_time'] = pd.to_datetime(df['local_date_close'])-pd.to_datetime(df['local_date_open'])
+	df['closure_time_min'] = df['closure_time'].apply(lambda row: float(row.seconds)/60)
+	df.ix[:,'flag'] = 0
+	df.ix[df['closure_time_min'] > df['95th_percentile'],'flag'] = 1
+
+	map_osm = folium.Map(location=[47.5936, -122.3750], zoom_start=12, tiles='Stamen Toner')
 
 	for bridge, coord in bridges.iteritems():
 	    color='green'
-	    if bridge in current_closures['bridge'].values:
+	    print bridge
+	    cam_url = traffic_cams[traffic_cams['bridge'] == bridge]['url'].values[0]
+	    html="""<img src=""" + cam_url + """ style="width:100%;height:100%;">traffic cam</img>"""
+	    iframe = folium.element.IFrame(html=html,width=400,height=300)
+	    popup = folium.Popup(iframe)
+
+	    if bridge in df['bridge'].values:
 	        color='red'
+	        # use yellow to flag potential data issue
+	        if df[df['bridge'] == bridge]['flag'].values[0] > 0:
+	        	color = 'orange'
+	        	popup=bridge + ': likely accessible, see traffic cameras'
 	    icon = folium.Icon(color=color, icon="ok")
-	    marker = folium.Marker(location=coord,icon=icon, popup=bridge)
+	    marker = folium.Marker(location=coord,icon=icon, popup=popup)
 
 	    map_osm.add_children(marker);
 
@@ -55,4 +77,4 @@ def map():
 
 if __name__ == '__main__':
 	# app.run(debug=True)
-	app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
+	app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
