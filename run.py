@@ -32,10 +32,9 @@ def update_bridge_status(interval):
 	current_closures_df = bridge_stat.current_closures()
 
 	print 'fetching bridge status now'
+	print len(current_closures_df)
 	# Check that the data looks okay. If so, save a copy locally
 	current_closures_df.to_csv('data/bridge/current_closures.csv')
-
-update_bridge_status(update_interval)
 
 @app.route('/')
 def map():
@@ -44,11 +43,12 @@ def map():
 	traffic_cams = pd.read_csv('data/bridge/traffic_cams.csv')
 
 	# Flag closure periods longer than 95th percentile
-	df = pd.merge(df,avg_times_df,on='bridge')
-	df['closure_time'] = pd.to_datetime(df['local_date_close'])-pd.to_datetime(df['local_date_open'])
-	df['closure_time_min'] = df['closure_time'].apply(lambda row: float(row.seconds)/60)
-	df.ix[:,'flag'] = 0
-	df.ix[df['closure_time_min'] > df['95th_percentile'],'flag'] = 1
+	if len(df) > 0:
+		df = pd.merge(df,avg_times_df,on='bridge')
+		df['closure_time'] = pd.to_datetime(df['local_date_close'])-pd.to_datetime(df['local_date_open'])
+		df['closure_time_min'] = df['closure_time'].apply(lambda row: float(row.seconds)/60)
+		df.ix[:,'flag'] = 0
+		df.ix[df['closure_time_min'] > df['95th_percentile'],'flag'] = 1
 
 	map_osm = folium.Map(location=[47.5936, -122.3750], zoom_start=12, tiles='Stamen Toner')
 
@@ -77,4 +77,5 @@ def map():
 
 if __name__ == '__main__':
 	# app.run(debug=True)
+	update_bridge_status(update_interval)
 	app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)

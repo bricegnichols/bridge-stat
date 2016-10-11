@@ -113,7 +113,6 @@ def current_closures():
 	'''
 	tweets = get_tweets('SDOTBridges',export_all=False)
 	df = bridge_status(tweets).sort_values('local_date')
-
 	# All closed bridges should have an open even followed by a later closed event
 
 	# Check all the close events
@@ -122,8 +121,9 @@ def current_closures():
 
 	# get only the most recent open and close events
 	df = pd.merge(close_events,open_events,on='bridge',suffixes=['_close','_open'])
-
-	current_closures = df[df['local_date_open'] < df['local_date_close']]
+	
+	current_closures = df[pd.to_datetime(df['local_date_open']) < pd.to_datetime(df['local_date_close'])]
+	
 
 	return current_closures
 
