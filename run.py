@@ -54,19 +54,22 @@ def map():
 
 	for bridge, coord in bridges.iteritems():
 	    color='green'
+	    icon='ok'
 	    print bridge
 	    cam_url = traffic_cams[traffic_cams['bridge'] == bridge]['url'].values[0]
-	    html="""<img src=""" + cam_url + """ style="width:100%;height:100%;">traffic cam</img>"""
+	    html=	"""<img src=""" + cam_url + """ style="width:100%;height:90%;"></img>"""
 	    iframe = folium.element.IFrame(html=html,width=400,height=300)
-	    popup = folium.Popup(iframe)
+	    popup = folium.Popup(iframe,max_width=1000)
 
 	    if bridge in df['bridge'].values:
 	        color='red'
-	        # use yellow to flag potential data issue
+	        icon='exclamation'
+	        # flag potential data issue
 	        if df[df['bridge'] == bridge]['flag'].values[0] > 0:
-	        	color = 'orange'
-	        	popup=bridge + ': likely accessible, see traffic cameras'
-	    icon = folium.Icon(color=color, icon="ok")
+	        	color = 'green'
+	        	# possibly change the icon to an exclamation point or something
+	        	# to warn that the twitter data is inaccurate
+	    icon = folium.Icon(color=color, icon=icon)
 	    marker = folium.Marker(location=coord,icon=icon, popup=popup)
 
 	    map_osm.add_children(marker);
