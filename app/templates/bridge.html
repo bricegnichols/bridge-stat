@@ -1,22 +1,8 @@
 <html>
   <head>
-  	<title>{{ test }} - microblog</title>
+  	<title>{{ bridge_name }}</title>
   </head>
   <body><h1>{{ 'closures so far today' }}</h1>
-  	<p>
-  {% for bridge_name, value in resp.closures_so_far.items() %}
-    <table>
-      <tr>
-        <td>{{ bridge_name }}</td>
-  	  	<td>{{ value }}</td>
-  	  </tr>
-  </table>
-    {% endfor %}
-	</p>
-  <p>
-    <h1>{{ resp.bridge }}</h1>
-    <img src= {{ url_for('static', 
-    filename = 'css/images/{{ resp.bridge }}.png') }} width="600" height="400" alt="previous" title="Previous" border="0"></img>
-  </p>
+  SOME TEXT IN HERE LORUM IPSUM ITS ALL GREEK TO ME LOL
   </body>
 </html>

@@ -1,0 +1,6 @@
+,Unnamed: 0,bridge,event_close,text_close,created_at_close,local_date_close,event_open,text_open,created_at_open,local_date_open,95th_percentile,mean
+0,1,Lower Spokane St,closed,"The Lower Spokane St Bridge has closed to
+  traffic - 6:21:21 PM",2016-10-08 01:21:24,2016-10-07 18:21:24,open,"The Lower Spokane St Bridge has reopened to
+  traffic - 4:32:06 PM",2016-10-07 23:32:09,2016-10-07 16:32:09,24.1383333333,13.2105218855
+1,2,University,closed,"The University Bridge has closed to traffic
+  - 6:47:04 PM",2016-10-08 01:47:08,2016-10-07 18:47:08,open,The University Bridge has reopened to   traffic - 12:56:24 PM,2016-10-07 19:56:25,2016-10-07 12:56:25,10.4125,5.18351660198

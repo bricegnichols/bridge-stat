@@ -1,3 +1,8 @@
+
+#####################
+# Turn off debug mode in production
+debug = True
+
 #! flask/bin/python
 
 import os
@@ -57,7 +62,7 @@ def map():
 	    icon='ok'
 	    print bridge
 	    cam_url = traffic_cams[traffic_cams['bridge'] == bridge]['url'].values[0]
-	    html=	"""<img src=""" + cam_url + """ style="width:100%;height:90%;"></img>"""
+	    html="""<base target="_blank" /><a href=http://www.google.com><img src=""" + cam_url + """ style="width:100%;height:90%;"></img></a>"""
 	    iframe = folium.element.IFrame(html=html,width=400,height=300)
 	    popup = folium.Popup(iframe,max_width=1000)
 
@@ -78,7 +83,16 @@ def map():
 	
 	return send_from_directory(os.getcwd(),'osm.html')
 
+@app.route('/bridge')
+def bridge():
+	'''
+	Return template that has bridge info in it
+	'''
+	bridge_name='test'
+	return render_template('bridge.html', bridge_name=bridge_name)
+
 if __name__ == '__main__':
-	# app.run(debug=True)
-	update_bridge_status(update_interval)
+	# app.run(debug=debug)
+	if debug==False:
+		update_bridge_status(update_interval)
 	app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
